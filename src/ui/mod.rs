@@ -1,12 +1,22 @@
+#![allow(unused)]
+use comment::CommentLi;
 use dioxus::prelude::*;
 use story_item::StoryItemLi;
 
-use crate::api::get_top_stories;
+use crate::{api::get_top_stories, StoryData, StoryItem};
 
 pub mod comment;
 pub mod story_item;
 
 pub static CSS: Asset = asset!("assets/tailwind.css");
+
+#[derive(Debug, Clone)]
+pub(crate) enum CommentsState {
+    Unset,
+    Loading,
+    Loaded(StoryData),
+    Error(String),
+}
 
 #[derive(Clone, PartialEq, Routable)]
 enum Route {
@@ -77,21 +87,18 @@ fn NotFound(others: Vec<String>) -> Element {
 #[component]
 fn HackerNews() -> Element {
     // let story_items = use_resource(|| async move { get_top_stories(2).await.unwrap() });
+    let comments_state = use_context_provider(|| Signal::new(CommentsState::Unset));
 
     rsx! {
         main {
             class: "flex w-full h-full shadow-lg rounded-3xl",
-            section { class: "flex flex-col pt-3 w-4/12 bg-gray-50 h-full overflow-y-scroll",
-                ul {
-
-                    Stories{}
-                }
+            section {
+                class: "flex flex-col pt-3 w-4/12 bg-gray-50 h-full overflow-y-scroll",
+                Stories {}
             }
             section { class: "w-8/12 px-4 flex flex-col bg-white rounded-r-3xl",
                 section {
-                    ul {
-                        // CommentLi{}
-                    }
+                    Comment {}
                 }
             }
         }
@@ -129,6 +136,41 @@ fn Stories() -> Element {
                 div {
                     class: "text-gray-500",
                     p {"Loading..."}
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn Comment() -> Element {
+    let comments_state = use_context::<Signal<CommentsState>>();
+    match comments_state() {
+        CommentsState::Unset => {
+            rsx! {}
+        }
+        CommentsState::Loading => {
+            rsx! {
+                div {
+                    class: "text-gray-500",
+                    p {"Loading comments..."}
+                }
+            }
+        }
+        CommentsState::Loaded(story_data) => {
+            rsx! {
+                ul {
+                    for comment in story_data.comments {
+                        CommentLi {comment: comment.clone()}
+                    }
+                }
+            }
+        }
+        CommentsState::Error(e) => {
+            rsx! {
+                div {
+                    class: "text-red-500",
+                    p {"Error: {e}"}
                 }
             }
         }

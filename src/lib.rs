@@ -28,7 +28,6 @@ pub struct StoryItem {
 pub struct Comment {
     pub by: String,
     pub id: i64,
-    pub kids: Vec<i64>,
     pub parent: i64,
     pub text: Option<String>,
     #[serde(with = "chrono::serde::ts_seconds")]

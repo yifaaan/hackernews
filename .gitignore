@@ -7,7 +7,7 @@ Cargo.lock
 **/*.rs.bk
 
 # Tailwind CSS
-assets/tailwind.css
+# assets/tailwind.css
 
 # Node modules
 node_modules
